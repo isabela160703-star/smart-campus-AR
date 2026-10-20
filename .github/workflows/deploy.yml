@@ -27,10 +27,13 @@ jobs:
       - name: Configurar Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Instalar dependencias
+        # npm ci con el lock regenerado en Linux: incluye los binarios
+        # opcionales de rollup para todas las plataformas (evita el bug
+        # https://github.com/npm/cli/issues/4828).
         run: npm ci
 
       - name: Build (PWA) con base de Pages
