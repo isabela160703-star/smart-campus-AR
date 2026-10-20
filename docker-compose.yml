@@ -1,0 +1,42 @@
+services:
+  # Servicio de desarrollo con hot-reload (HTTPS via Vite + basicSsl)
+  smartcampus-hci-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: smartcampus-ar-movil-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
+
+  # Servicio de producción (recomendado para instalar la PWA en el celular).
+  # Sirve el build estático por HTTPS con nginx: service worker + manifest
+  # funcionan de forma fiable, requisito de Chrome/Android para "Instalar app".
+  smartcampus-hci-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: smartcampus-ar-movil-prod
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    restart: unless-stopped
+
+  # Túnel HTTPS con certificado VÁLIDO (Cloudflare Quick Tunnel).
+  # Expone la PWA de producción en una URL pública https://<algo>.trycloudflare.com
+  # con certificado real: Chrome ofrece "Instalar app" sin instalar ninguna CA
+  # en el celular. La URL aparece en los logs de este contenedor:
+  #   docker compose logs -f tunnel
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: smartcampus-ar-movil-tunnel
+    command: tunnel --no-autoupdate --url https://smartcampus-hci-prod:8443 --no-tls-verify
+    depends_on:
+      - smartcampus-hci-prod
+    restart: unless-stopped

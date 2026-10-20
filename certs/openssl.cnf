@@ -1,0 +1,29 @@
+[req]
+default_bits       = 2048
+prompt             = no
+default_md         = sha256
+distinguished_name = dn
+x509_extensions    = v3_ca
+
+[dn]
+C  = MX
+ST = CDMX
+L  = CDMX
+O  = SmartCampus Local CA
+CN = SmartCampus Local CA
+
+[v3_ca]
+basicConstraints = critical,CA:TRUE
+keyUsage         = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+
+[server_ext]
+basicConstraints = CA:FALSE
+keyUsage         = critical,digitalSignature,keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName   = @alt_names
+
+[alt_names]
+IP.1  = 192.168.100.11
+IP.2  = 127.0.0.1
+DNS.1 = localhost

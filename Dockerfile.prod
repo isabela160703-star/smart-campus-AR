@@ -1,0 +1,25 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# Etapa final: servidor estático con HTTPS (necesario para instalar la PWA)
+FROM nginx:alpine
+
+# Certificados firmados por una CA local (generados con scripts/gen-certs.ps1).
+# Al instalar rootCA.crt en el celular, Chrome los considera de confianza.
+COPY certs /etc/nginx/certs
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expone la CA para descargarla facilmente: https://<IP>:8443/rootCA.crt
+RUN cp /etc/nginx/certs/rootCA.crt /usr/share/nginx/html/rootCA.crt
+
+EXPOSE 8080 8443
+
+CMD ["nginx", "-g", "daemon off;"]

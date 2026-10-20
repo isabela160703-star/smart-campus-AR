@@ -1,0 +1,24 @@
+Lee detenidamente los archivos `.windsurfrules` y `REQUIREMENTS.md` en la raíz del espacio de trabajo.
+
+Necesito que construyas de principio a fin la aplicación móvil "SmartCampus AR" completamente dockerizada usando React, Vite, Tailwind CSS, `@vitejs/plugin-basic-ssl` y `lucide-react`, cumpliendo el 100% de las reglas de arquitectura, contenedorización y requerimientos funcionales de HCI.
+
+Ejecuta el desarrollo siguiendo este plan paso a paso:
+1. **Infraestructura Docker y Configuración Base:**
+   - Crea `package.json` incluyendo `react`, `react-dom`, `lucide-react`, `vite`, `@vitejs/plugin-react`, `@vitejs/plugin-basic-ssl`, `tailwindcss`, `postcss` y `autoprefixer`.
+   - Configura `vite.config.js` integrando `basicSsl()` y exponiendo `host: '0.0.0.0'`, `port: 5173`, `https: true` y `watch: { usePolling: true }`.
+   - Crea `.dockerignore`, `Dockerfile.dev` (basado en `node:20-alpine`) y `docker-compose.yml` con el servicio `smartcampus-hci-web` configurado con volúmenes para hot-reload y el puerto `5173:5173`.
+2. **Datos e IoT (`src/data/poiData.js`):**
+   - Crea los 4 laboratorios con sus ángulos de orientación espacial (`anguloMin`, `anguloMax`), textos diferenciados (`descripcionCompleta` y `resumenCorto`) y telemetría IoT simulada.
+3. **Custom Hooks de Sensores (`src/hooks/`):**
+   - `useHaptics.js`: Patrones de vibración seguros con fallback.
+   - `useMultimodalVoice.js`: TTS en español y reconocimiento de comandos de voz (*"siguiente"*, *"anterior"*, *"leer"*, *"cámara"*).
+   - `useMotionSensors.js`: Lectura de `DeviceOrientationEvent` y `DeviceMotionEvent`, cálculo de aceleración para caminata (`isWalking`) y gesto `shake`, inclinación `gamma` con cooldown de 1.5s para cambiar de tarjeta, solicitud de permisos explícita para iOS 13+, y soporte completo de sobreescritura manual desde el simulador.
+4. **Componentes de Interfaz (`src/components/`):**
+   - `StatusHeader.jsx`: Estado en vivo de sensores (Quieto/Caminando, Tema lumínico, Grados de brújula `alpha` y micrófono).
+   - `ARCameraView.jsx`: Cámara trasera en vivo con HUD de Realidad Aumentada superpuesto que ancla la tarjeta flotante cuando `alpha` coincide con un laboratorio, más flechas guía.
+   - `AdaptiveCardView.jsx`: Vista principal que muta dinámicamente su diseño, tipografía y cantidad de texto según `isWalking` (reducción de carga cognitiva) y el modo de iluminación (`normal`, `dark`, `solar` de alto contraste).
+   - `ThumbZoneControls.jsx`: Barra inferior ergonómica en la zona del pulgar con botones grandes (`min-h-[64px]`) para alternar vista AR, activar voz, navegar y abrir el simulador.
+   - `SensorSimulatorDrawer.jsx`: Panel flotante para pruebas en PC que permita simular en vivo el movimiento (Caminando/Quieto, botón Shake), el nivel de luz (Normal, Oscuro, Sol directo) y un slider de 0° a 360° para rotar la brújula en la vista AR.
+5. **Integración y Documentación:**
+   - Integra todo en `App.jsx` con una pantalla de bienvenida que solicite los permisos de sensores y cámara al usuario.
+   - Crea un `README.md` claro explicando a los estudiantes cómo levantar el contenedor con `docker compose up -d --build` y cómo entrar desde el navegador de su celular usando `https://<IP_LOCAL_DE_SU_PC>:5173` (aceptando el certificado autofirmado en el navegador móvil).
